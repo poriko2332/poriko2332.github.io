@@ -6,7 +6,7 @@ $(function() {
 
     $('input[type=file]').change(function() {
 
-        var subscriptionKey = "f79c4fbbcc2f4d5cacf81f73aa7a7423";
+        var subscriptionKey = "6a3588e1-9f93-4da7-acca-88b289cc7571";
 
         var uriBase = "https://watanabeface.cognitiveservices.azure.com/";
 
