@@ -3,9 +3,56 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
+  <title>kadai</title>
+  <script>
+    window.addEventListener("DOMContentLoaded", init);
+
+    function init(){
+      var width = 800,
+          height = 600;
+
+      const renderer = new THREE.WebGLRenderer({
+        canvas: document.querySelector("#myCanvas")
+      });
+      renderer.setSize(width, height);
+
+      const scene = new THREE.Scene();
+
+      const camera = new THREE.PerspectiveCamera(45, width / height, 1, 10000);
+      camera.position.set(30, 45, 30);
+      camera.lookAt(scene.position);
+
+      //座標軸を表示
+      var axes = new THREE.AxisHelper(2500);
+      scene.add(axes);
+
+      // 箱を作成(原点に作成)
+      var geometry = new THREE.BoxGeometry(5, 5, 5);
+      var material = new THREE.MeshPhongMaterial({ color: 0x0000ff });
+      var box = new THREE.Mesh(geometry, material);
+      box.position.set(5, 10, 15);
+      scene.add(box);
+
+      // 平行光源
+      var directionalLight = new THREE.DirectionalLight(0xffffff);
+      directionalLight.position.set(0, 1, 1);
+      scene.add(directionalLight);
+      
+      //初回実行
+      tick();
+
+      //アニメーション
+      function tick(){
+        requestAnimationFrame(tick);
+        box.rotation.x += 0.01;
+        
+        renderer.render(scene, camera);
+      }
+    }
+  </script>
 </head>
 <body>
-  Link Test.
+  <canvas id="myCanvas"></canvas>
 </body>
 </html>
