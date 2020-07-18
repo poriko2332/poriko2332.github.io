@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
+  <script src="OrbitControls.js"></script>
   <title>kadai</title>
   <script>
     window.addEventListener("DOMContentLoaded", init);
@@ -22,6 +23,11 @@
       const camera = new THREE.PerspectiveCamera(45, width / height, 1, 10000);
       camera.position.set(30, 45, 30);
       camera.lookAt(scene.position);
+
+      //OrbitContorolsを適用、滑らかに動かす
+      const contorols = new THREE.OrbitControls(camera);
+      contorols.enableDamping = true;
+      contorols.dampingFactor = 0.2;
 
       //座標軸を表示
       var axes = new THREE.AxisHelper(2500);
@@ -44,6 +50,7 @@
 
       //アニメーション
       function tick(){
+        contorols.update();
         requestAnimationFrame(tick);
         box.rotation.x += 0.01;
         
