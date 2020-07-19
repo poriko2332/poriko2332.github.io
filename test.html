@@ -34,53 +34,53 @@
       var axes = new THREE.AxisHelper(2500);
       scene.add(axes);
 
-      // 箱を作成(原点に作成)
-      var geometry = new THREE.BoxGeometry(5, 5, 5);
-      var material = new THREE.MeshPhongMaterial({ color: 0x0000ff });
-      var box = new THREE.Mesh(geometry, material);
-      box.position.set(5, 5, 5);
-      scene.add(box);
+      // 平行光源
+      var directionalLight = new THREE.DirectionalLight(0xffffff);
+      directionalLight.position.set(0, 1, 1);
+      scene.add(directionalLight);
 
-      //床を作成
       const meshFloor = new THREE.Mesh(
           new THREE.BoxGeometry(2000, 0.1, 2000),
           new THREE.MeshStandardMaterial({ color: 0x808080, roughness: 0.0 })
         );
       scene.add(meshFloor);
 
-      // 平行光源
-      var directionalLight = new THREE.DirectionalLight(0xffffff);
-      directionalLight.position.set(0, 1, 1);
-      scene.add(directionalLight);
+      //gltf読み込み
+      const gltfLoader = new THREE.GLTFLoader();
+      gltfLoader.load('testGLTF.gltf', function(data){
+        const gltf = data;
+        const obj = gltf.scene;
 
-      //点光源
-      var pointlight = new THREE.PointLight(0xffffff, 2, 50, 1.0);
-      scene.add(pointlight);
-      var lightHelper = new THREE.PointLightHelper(pointlight);
-      scene.add(lightHelper);
-      
+        scene.add(obj);
+        //console.log("gltfloaded");
+      });
+
+
+      var count = 0;
       //初回実行
       tick();
 
       //アニメーション
       function tick(){
         contorols.update();
-        requestAnimationFrame(tick);
-        box.rotation.x += 0.01;
 
-        // 照明の位置を更新
-        const t = Date.now() / 500;
-        const r = 10.0;
-        const lx = r * Math.cos(t);
-        const lz = r * Math.sin(t);
-        const ly = 6.0 + 5.0 * Math.sin(t / 3.0);
-        pointlight.position.set(lx, ly, lz);
-        pointlight.lookAt(new THREE.Vector3(0, 0, 0));
-        
-        document.getElementById("pointlight_x").innerHTML = "x :" + pointlight.position.x;
-        document.getElementById("pointlight_y").innerHTML = "y :" + pointlight.position.y;
-        document.getElementById("pointlight_z").innerHTML = "z :" + pointlight.position.z;
-        document.getElementById("box_x").innerHTML = "x :" + box.position.x;
+        scene.traverse(function(obj){
+          
+          if(obj.name == "Cube"){
+            obj.rotation.x += 0.01;
+            obj.rotation.y += 0.01;
+          }
+          if(obj.name == "Sphere"){
+            if(count >= 60) {
+              obj.material.color.setHex(Math.random() * 0xffffff);
+              count = 0;
+            }
+            else
+              count ++;
+          }
+        });
+
+        requestAnimationFrame(tick);
         renderer.render(scene, camera);
       }
     }
@@ -89,10 +89,6 @@
 </head>
 <body>
   <canvas id="myCanvas"></canvas>
-  <p id="pointlight_x"></p>
-  <p id="pointlight_y"></p>
-  <p id="pointlight_z"></p>
-  <p id="box_x"></p>
 
 </body>
 </html>
