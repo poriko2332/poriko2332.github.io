@@ -22,7 +22,7 @@
       const scene = new THREE.Scene();
 
       const camera = new THREE.PerspectiveCamera(45, width / height, 1, 10000);
-      camera.position.set(30, 5, 30);
+      camera.position.set(10, 2, 10);
       camera.lookAt(scene.position);
 
       //OrbitContorolsを適用、滑らかに動かす
@@ -36,9 +36,24 @@
 
       // 平行光源
       var directionalLight = new THREE.DirectionalLight(0xffffff);
-      directionalLight.position.set(0, 1, 1);
+      directionalLight.position.set(3, 5, 10);
       scene.add(directionalLight);
 
+      const lightHelper = new THREE.DirectionalLightHelper(directionalLight);
+      scene.add(lightHelper);
+
+      // 平行光源
+      var directionalLight1 = new THREE.DirectionalLight(0xffffff);
+      directionalLight1.position.set(10, 5, 4);
+      scene.add(directionalLight1);
+
+      const lightHelper1 = new THREE.DirectionalLightHelper(directionalLight1);
+      scene.add(lightHelper1);
+
+      var pointlight = new THREE.PointLight(0xffffff, 2, 50, 1.0);
+      scene.add(pointlight);
+      pointlight.position.set(3,20,3);
+      
       const meshFloor = new THREE.Mesh(
           new THREE.BoxGeometry(2000, 0.1, 2000),
           new THREE.MeshStandardMaterial({ color: 0x808080, roughness: 0.0 })
@@ -47,14 +62,15 @@
 
       //gltf読み込み
       const gltfLoader = new THREE.GLTFLoader();
-      gltfLoader.load('testGLTF.gltf', function(data){
+      gltfLoader.load('kan_plane.glb', function(data){
         const gltf = data;
         const obj = gltf.scene;
-
         scene.add(obj);
+        obj.position.y = 2;
         //console.log("gltfloaded");
       });
 
+      renderer.outputEncoding = THREE.GammaEncoding;
 
       var count = 0;
       //初回実行
@@ -65,18 +81,8 @@
         contorols.update();
 
         scene.traverse(function(obj){
-          
-          if(obj.name == "Cube"){
-            obj.rotation.x += 0.01;
+          if(obj.name == "Kan"){
             obj.rotation.y += 0.01;
-          }
-          if(obj.name == "Sphere"){
-            if(count >= 60) {
-              obj.material.color.setHex(Math.random() * 0xffffff);
-              count = 0;
-            }
-            else
-              count ++;
           }
         });
 
