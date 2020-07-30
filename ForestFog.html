@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
+  <script src="OrbitControls.js"></script>
+  <script src="GLTFLoader.js"></script>
+  <title>ForestFog</title>
+  <script>
+    window.addEventListener("DOMContentLoaded", init);
+
+  function init(){
+  var ay = 0;
+
+
+  //レンダリング初期化
+  var width = 800,
+      height = 600;
+
+  const renderer = new THREE.WebGLRenderer({
+    canvas: document.querySelector("#myCanvas")
+  });
+  renderer.setSize(width, height);
+
+  //シーンとカメラ初期化と追加
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, width / height, 1, 10000);
+  camera.position.set(30, 30, 0);
+  camera.lookAt(scene.position);
+
+  //座標軸を表示
+  var axes = new THREE.AxisHelper(2500);
+  scene.add(axes);
+
+  //グリッドの常時
+  var gridHelper = new THREE.GridHelper(50, 10);
+  scene.add(gridHelper);
+  
+  //OrbitContorolsの実装
+  const controls = new THREE.OrbitControls(camera);
+
+  //--------------------------
+  //ジオメトリとか色々実装
+
+  //texture loader
+  const TextureLoader = new THREE.TextureLoader();
+
+  // 箱を作成(原点に作成)
+  var geometry = new THREE.BoxGeometry(5, 5, 5);
+  var material = new THREE.MeshPhongMaterial({ color: 0x0000ff });
+  var box = new THREE.Mesh(geometry, material);
+  box.position.set(5, 5, 5);
+  scene.add(box);
+
+  
+  const geo = new THREE.Geometry(); 
+
+  const size = 50;
+  const length = 100;
+  for (let i = 0; i < length; i++) {
+      geo.vertices.push(
+        new THREE.Vector3(
+          size * (Math.random() - 0.5),
+          size * (Math.random() - 0.5),
+          size * (Math.random() - 0.5)
+        )
+      );
+    }
+  const mat = new THREE.PointsMaterial({color: "0xffffff", size: 1});
+  const mesh = new THREE.Points(geo, mat);
+  scene.add(mesh);
+  
+
+  groundtexture = TextureLoader.load("img/ground.jpg");
+  const groundFloor = new THREE.Mesh(
+      new THREE.BoxGeometry(20, 0.1, 20),
+      new THREE.MeshStandardMaterial({map: groundtexture })
+    );
+  //scene.add(groundFloor);
+
+  //ライト
+  const light = new THREE.AmbientLight(0xFFFFFF, 1.0);
+  scene.add(light);
+  
+  //アニメーション
+  tick();
+
+  function tick(){
+    controls.update();
+    requestAnimationFrame(tick);
+    geo.vertices.forEach(p => {
+      //ay -= 0.01 ;
+      p.y -= 0.1;
+      if(p.y <= -5) {
+        p.y = 10;
+        //ay = 0;
+      }
+    });
+    geo.verticesNeedUpdate = true;
+    box.rotation.x += 0.01;
+    renderer.render(scene, camera);
+
+  }
+}
+  </script>
+</head>
+<body>
+  <canvas id="myCanvas"></canvas>
+</body>
+</html>
