@@ -21,6 +21,7 @@
   const renderer = new THREE.WebGLRenderer({
     canvas: document.querySelector("#myCanvas")
   });
+  renderer.setClearColor(0xe0e0e0, 1.0);
   renderer.setSize(width, height);
 
   //シーンとカメラ初期化と追加
@@ -52,12 +53,11 @@
   var box = new THREE.Mesh(geometry, material);
   box.position.set(5, 5, 5);
   scene.add(box);
-
   
+  //パーティクル生成、配置
   const geo = new THREE.Geometry(); 
-
-  const size = 50;
-  const length = 100;
+  const size = 300;
+  const length = 500;
   for (let i = 0; i < length; i++) {
       geo.vertices.push(
         new THREE.Vector3(
@@ -67,7 +67,12 @@
         )
       );
     }
-  const mat = new THREE.PointsMaterial({color: "0xffffff", size: 1});
+  raintexture = TextureLoader.load("img/rain.png");
+  const mat = new THREE.PointsMaterial({
+    map: raintexture,
+    size: 2,
+    transparent: true
+  });
   const mesh = new THREE.Points(geo, mat);
   scene.add(mesh);
   
@@ -90,11 +95,11 @@
     controls.update();
     requestAnimationFrame(tick);
     geo.vertices.forEach(p => {
-      //ay -= 0.01 ;
-      p.y -= 0.1;
-      if(p.y <= -5) {
-        p.y = 10;
-        //ay = 0;
+      p.y -= 0.5;
+      if(p.y <= -10) {
+        p.y = 20;
+        p.x = (Math.random() - 0.5) * 50;
+        p.z = (Math.random() - 0.5) * 50;
       }
     });
     geo.verticesNeedUpdate = true;
