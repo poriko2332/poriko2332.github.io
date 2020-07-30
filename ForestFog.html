@@ -26,6 +26,7 @@
 
   //シーンとカメラ初期化と追加
   const scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0xe0e0e0,1, 200);
   const camera = new THREE.PerspectiveCamera(45, width / height, 1, 10000);
   camera.position.set(30, 30, 0);
   camera.lookAt(scene.position);
@@ -56,8 +57,8 @@
   
   //パーティクル生成、配置
   const geo = new THREE.Geometry(); 
-  const size = 300;
-  const length = 500;
+  const size = 200;
+  const length = 10000;
   for (let i = 0; i < length; i++) {
       geo.vertices.push(
         new THREE.Vector3(
@@ -75,18 +76,25 @@
   });
   const mesh = new THREE.Points(geo, mat);
   scene.add(mesh);
-  
 
   groundtexture = TextureLoader.load("img/ground.jpg");
+  ground_normaltexture = TextureLoader.load("img/ground_normal.jpg");
   const groundFloor = new THREE.Mesh(
-      new THREE.BoxGeometry(20, 0.1, 20),
-      new THREE.MeshStandardMaterial({map: groundtexture })
+      new THREE.BoxGeometry(200, 0.1, 200),
+      new THREE.MeshStandardMaterial({map: groundtexture, 
+        normalMap: ground_normaltexture,
+        roughness:1.0 })
     );
-  //scene.add(groundFloor);
+  scene.add(groundFloor);
 
   //ライト
-  const light = new THREE.AmbientLight(0xFFFFFF, 1.0);
-  scene.add(light);
+  //const light = new THREE.AmbientLight(0xFFFFFF, 1.0);
+  //scene.add(light);
+
+  // 平行光源
+  var directionalLight = new THREE.DirectionalLight(0xffffff);
+  directionalLight.position.set(0, 1, 1);
+  scene.add(directionalLight);
   
   //アニメーション
   tick();
@@ -97,9 +105,9 @@
     geo.vertices.forEach(p => {
       p.y -= 0.5;
       if(p.y <= -10) {
-        p.y = 20;
-        p.x = (Math.random() - 0.5) * 50;
-        p.z = (Math.random() - 0.5) * 50;
+        p.y = (Math.random() - 0.5) * size;
+        p.x = (Math.random() - 0.5) * size;
+        p.z = (Math.random() - 0.5) * size;
       }
     });
     geo.verticesNeedUpdate = true;
