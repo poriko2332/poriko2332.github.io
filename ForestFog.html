@@ -26,9 +26,9 @@
 
   //シーンとカメラ初期化と追加
   const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0xe0e0e0,1, 200);
+  scene.fog = new THREE.Fog(0xe0e0e0,1, 150);
   const camera = new THREE.PerspectiveCamera(45, width / height, 1, 10000);
-  camera.position.set(30, 30, 0);
+  camera.position.set(0, 10, 75);
   camera.lookAt(scene.position);
 
   //座標軸を表示
@@ -41,19 +41,13 @@
   
   //OrbitContorolsの実装
   const controls = new THREE.OrbitControls(camera);
+  controls.maxPolarAngle = 1.5;   //下段のカメラの制限?　少なくともこれで地面より下にはもぐりこまない。
 
   //--------------------------
   //ジオメトリとか色々実装
 
   //texture loader
   const TextureLoader = new THREE.TextureLoader();
-
-  // 箱を作成(原点に作成)
-  var geometry = new THREE.BoxGeometry(5, 5, 5);
-  var material = new THREE.MeshPhongMaterial({ color: 0x0000ff });
-  var box = new THREE.Mesh(geometry, material);
-  box.position.set(5, 5, 5);
-  scene.add(box);
   
   //パーティクル生成、配置
   const geo = new THREE.Geometry(); 
@@ -77,6 +71,7 @@
   const mesh = new THREE.Points(geo, mat);
   scene.add(mesh);
 
+  //地面の配置
   groundtexture = TextureLoader.load("img/ground.jpg");
   const groundFloor = new THREE.Mesh(
       new THREE.BoxGeometry(200, 0.1, 200),
@@ -85,13 +80,49 @@
     );
   scene.add(groundFloor);
 
+  //家の配置
   const gltfLoader = new THREE.GLTFLoader();
-    gltfLoader.load('house.glb', function (data) {
+  gltfLoader.load('model/house.glb', function (data) {
+    const gltf = data;
+    const obj = gltf.scene;
+    obj.position.y = 10;
+    scene.add(obj);
+  });
+
+  //treeモデルの複数回配置
+  //tree_z 初期位置
+  //tree_offset_z zの変化量
+  var tree_z = 10;
+  var tree_offset_z = -15;
+  for(let i = 0; i < 4; i++){
+    gltfLoader.load('model/tree_toonlike.glb', function(data) {
       const gltf = data;
-      const obj = gltf.scene;
-      obj.position.y = 10;
+      obj = gltf.scene;
+      obj.position.x = 25;
+      obj.position.z = tree_z + (i * tree_offset_z);
+      obj.scale.set(0.5, 0.5, 0.5);
       scene.add(obj);
     });
+  }
+  for (let i = 0; i < 4; i++) {
+    gltfLoader.load('model/tree_toonlike.glb', function (data) {
+      const gltf = data;
+      obj = gltf.scene;
+      obj.position.x = -25;
+      obj.position.z = tree_z + (i * tree_offset_z);
+      obj.scale.set(0.5, 0.5, 0.5);
+      scene.add(obj);
+    });
+  }
+
+  gltfLoader.load('model/rock.glb', function (data) {
+    const gltf = data;
+    const obj = gltf.scene;
+    obj.position.x = 10;
+    obj.position.z = 13;
+    obj.scale.set(3, 3, 3);
+    scene.add(obj);
+  });
 
   //ライト
   //const light = new THREE.AmbientLight(0xFFFFFF, 1.0);
@@ -101,23 +132,44 @@
   var directionalLight = new THREE.DirectionalLight(0xffffff);
   directionalLight.position.set(0, 1, 1);
   scene.add(directionalLight);
-  
+
+  //----------------------------
+  //点光源
+  var pointlight = new THREE.PointLight(0xffffff, 2, 50, 1.0);
+  scene.add(pointlight);
+  var lightHelper = new THREE.PointLightHelper(pointlight);
+  scene.add(lightHelper);
+  //----------------------------
+
   //アニメーション
   tick();
 
   function tick(){
     controls.update();
     requestAnimationFrame(tick);
+
+    //雨粒のアニメーション
     geo.vertices.forEach(p => {
-      p.y -= 0.5;
-      if(p.y <= -10) {
+      p.y -= 0.5;   //雨の落下速度
+      if(p.y <= -10) {  //雨の寿命、yが-10以下になったらランダムな位置に移動させる
         p.y = (Math.random() - 0.5) * size;
         p.x = (Math.random() - 0.5) * size;
         p.z = (Math.random() - 0.5) * size;
       }
     });
-    geo.verticesNeedUpdate = true;
-    box.rotation.x += 0.01;
+    geo.verticesNeedUpdate = true;    //変更した配列の適用、毎回trueにしないとだめらしい。
+
+    //---------------------
+    // 照明の位置を更新
+    const t = Date.now() / 500;
+    const r = 30.0;
+    const lx = r * Math.cos(t);
+    const lz = r * Math.sin(t);
+    const ly = 10.0 + 5.0 * Math.sin(t / 3.0);
+    pointlight.position.set(lx, ly, lz);
+    pointlight.lookAt(new THREE.Vector3(0, 0, 0));
+    //-----------------------
+
     renderer.render(scene, camera);
 
   }
