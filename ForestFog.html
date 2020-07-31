@@ -31,6 +31,7 @@
   camera.position.set(0, 10, 75);
   camera.lookAt(scene.position);
 
+  /*
   //座標軸を表示
   var axes = new THREE.AxisHelper(2500);
   scene.add(axes);
@@ -38,7 +39,8 @@
   //グリッドの常時
   var gridHelper = new THREE.GridHelper(50, 10);
   scene.add(gridHelper);
-  
+  */
+
   //OrbitContorolsの実装
   const controls = new THREE.OrbitControls(camera);
   controls.maxPolarAngle = 1.5;   //下段のカメラの制限?　少なくともこれで地面より下にはもぐりこまない。
