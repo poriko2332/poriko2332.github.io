@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,194 +9,204 @@
   <script src="GLTFLoader.js"></script>
   <title>ForestFog</title>
   <script>
-    window.addEventListener("DOMContentLoaded", init);
+    window.addEventListener("load", init);
 
-  function init(){
-  var ay = 0;
-  const world_color = 0x9ca3ec;
+    function init() {
+      var ay = 0;
+      const world_color = 0x9ca3ec;
 
-  //レンダリング初期化
-  var width = 800,
-      height = 600;
+      //レンダリング初期化
+      var width = 800,
+        height = 600;
 
-  const renderer = new THREE.WebGLRenderer({
-    canvas: document.querySelector("#myCanvas")
-  });
-  renderer.setClearColor(world_color, 1.0);    //背景色
-  renderer.setSize(width, height);
+      const renderer = new THREE.WebGLRenderer({
+        canvas: document.querySelector("#myCanvas")
+      });
+      renderer.setClearColor(world_color, 1.0);    //背景色
+      renderer.setSize(width, height);
+      three_render.appendChild(renderer.domElement);   //divタグthree_renderにレンダー画面を子要素に入れる。画面のレイアウトを分けたい。
 
-  //シーンとカメラ初期化と追加
-  const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(world_color,1, 150);
-  const camera = new THREE.PerspectiveCamera(45, width / height, 1, 10000);
-  camera.position.set(0, 10, 75);
-  camera.lookAt(scene.position);
+      //シーンとカメラ初期化と追加
+      const scene = new THREE.Scene();
+      scene.fog = new THREE.Fog(world_color, 1, 150);
+      const camera = new THREE.PerspectiveCamera(45, width / height, 1, 10000);
+      camera.position.set(0, 10, 75);
+      camera.lookAt(scene.position);
 
-  /*
-  //座標軸を表示
-  var axes = new THREE.AxisHelper(2500);
-  scene.add(axes);
+      /*
+      //座標軸を表示
+      var axes = new THREE.AxisHelper(2500);
+      scene.add(axes);
+    
+      //グリッドの常時
+      var gridHelper = new THREE.GridHelper(50, 10);
+      scene.add(gridHelper);
+      */
 
-  //グリッドの常時
-  var gridHelper = new THREE.GridHelper(50, 10);
-  scene.add(gridHelper);
-  */
+      //OrbitControlsの実装
+      const controls = new THREE.OrbitControls(camera, renderer.domElement);    //OrbitControlsはデフォだと全画面(body全部)に適用されてしまうので、レンダー範囲に限定させる
+      controls.maxPolarAngle = 1.5;   //下段のカメラの制限?　少なくともこれで地面より下にはもぐりこまない。
 
-  //OrbitContorolsの実装
-  const controls = new THREE.OrbitControls(camera);
-  controls.maxPolarAngle = 1.5;   //下段のカメラの制限?　少なくともこれで地面より下にはもぐりこまない。
+      //--------------------------
+      //ジオメトリとか色々実装
 
-  //--------------------------
-  //ジオメトリとか色々実装
+      //texture loader
+      const TextureLoader = new THREE.TextureLoader();
 
-  //texture loader
-  const TextureLoader = new THREE.TextureLoader();
-  
-  //パーティクル生成、配置
-  const geo = new THREE.Geometry(); 
-  const size = 200;
-  const length = 10000;
-  for (let i = 0; i < length; i++) {
-      geo.vertices.push(
-        new THREE.Vector3(
-          size * (Math.random() - 0.5),
-          size * (Math.random() - 0.5),
-          size * (Math.random() - 0.5)
-        )
-      );
-    }
-  raintexture = TextureLoader.load("img/rain.png");
-  const mat = new THREE.PointsMaterial({
-    map: raintexture,
-    size: 2,
-    transparent: true
-  });
-  const mesh = new THREE.Points(geo, mat);
-  scene.add(mesh);
-
-  //地面の配置
-  groundtexture = TextureLoader.load("img/ground.jpg");
-  const groundFloor = new THREE.Mesh(
-      new THREE.BoxGeometry(200, 0.1, 200),
-      new THREE.MeshStandardMaterial({map: groundtexture, 
-        roughness:1.0 })
-    );
-  scene.add(groundFloor);
-
-  //家の配置
-  const gltfLoader = new THREE.GLTFLoader();
-  gltfLoader.load('model/house.glb', function (data) {
-    const gltf = data;
-    const obj = gltf.scene;
-    obj.position.y = 10;
-    scene.add(obj);
-  });
-
-  //treeモデルの複数回配置
-  //tree_z 初期位置
-  //tree_offset_z zの変化量
-  var tree_z = 10;
-  var tree_offset_z = -15;
-  for(let i = 0; i < 4; i++){
-    gltfLoader.load('model/tree_toonlike.glb', function(data) {
-      const gltf = data;
-      obj = gltf.scene;
-      obj.position.x = 25;
-      obj.position.z = tree_z + (i * tree_offset_z);
-      obj.scale.set(0.5, 0.5, 0.5);
-      scene.add(obj);
-    });
-  }
-  for (let i = 0; i < 4; i++) {
-    gltfLoader.load('model/tree_toonlike.glb', function (data) {
-      const gltf = data;
-      obj = gltf.scene;
-      obj.position.x = -25;
-      obj.position.z = tree_z + (i * tree_offset_z);
-      obj.scale.set(0.5, 0.5, 0.5);
-      scene.add(obj);
-    });
-  }
-
-  gltfLoader.load('model/rock.glb', function (data) {
-    const gltf = data;
-    const obj = gltf.scene;
-    obj.position.x = 10;
-    obj.position.z = 13;
-    obj.scale.set(3, 3, 3);
-    scene.add(obj);
-  });
-
-  // 平行光源
-  var directionalLight = new THREE.DirectionalLight(0xffffff);
-  directionalLight.position.set(0, 1, 1);
-  scene.add(directionalLight);
-
-  //点光源
-  //光源の強さを変化させ、揺らいでるようにしたい
-
-  var light_power = 1.5;
-
-  var windowlight_front = new THREE.PointLight(0xffff81, light_power, 20, 1.0);
-  windowlight_front.position.set(5 ,7.5 ,11);
-  scene.add(windowlight_front);
-  //var lightHelper = new THREE.PointLightHelper(windowlight_front);
-  //scene.add(lightHelper);
-
-  //
-  var windowlight_right = new THREE.PointLight(0xffff81, light_power, 30, 1);
-  windowlight_right.position.set(-11, 8, 0);
-  scene.add(windowlight_right);
-  //var lightHelper2 = new THREE.PointLightHelper(windowlight_right);
-  //scene.add(lightHelper2);
-
-  //
-  var windowlight_left1 = new THREE.PointLight(0xb56bff, light_power, 30, 1);
-  windowlight_left1.position.set(11.5, 8, 4.5);
-  scene.add(windowlight_left1);
-  //var lightHelper3 = new THREE.PointLightHelper(windowlight_left1);
-  //scene.add(lightHelper3);
-
-  var windowlight_left2 = new THREE.PointLight(0xb56bff, light_power, 30, 1);
-  windowlight_left2.position.set(11.5, 8, -5.5);
-  scene.add(windowlight_left2);
-  //var lightHelper4 = new THREE.PointLightHelper(windowlight_left2);
-  //scene.add(lightHelper4);
-
-  //アニメーション
-  tick();
-
-  function tick(){
-    controls.update();
-    requestAnimationFrame(tick);
-
-    //雨粒のアニメーション
-    geo.vertices.forEach(p => {
-      p.y -= 0.5;   //雨の落下速度
-      if(p.y <= -10) {  //雨の寿命、yが-10以下になったらランダムな位置に移動させる
-        p.y = (Math.random() - 0.5) * size;
-        p.x = (Math.random() - 0.5) * size;
-        p.z = (Math.random() - 0.5) * size;
+      //パーティクル生成、配置
+      const geo = new THREE.Geometry();
+      const size = 200;
+      const length = 10000;
+      for (let i = 0; i < length; i++) {
+        geo.vertices.push(
+          new THREE.Vector3(
+            size * (Math.random() - 0.5),
+            size * (Math.random() - 0.5),
+            size * (Math.random() - 0.5)
+          )
+        );
       }
-    });
-    geo.verticesNeedUpdate = true;    //変更した配列の適用、毎回trueにしないとだめらしい。
+      raintexture = TextureLoader.load("img/rain.png");
+      const mat = new THREE.PointsMaterial({
+        map: raintexture,
+        size: 2,
+        transparent: true
+      });
+      const mesh = new THREE.Points(geo, mat);
+      scene.add(mesh);
 
-    //ライトの強さ変更
-    var t = Date.now() / 2500;
-    var r = 3.0;   //radian
-    light_power = Math.abs(r * Math.sin(t));    //sinの絶対値だけ欲しい(負は取りたくない)
-    windowlight_front.intensity = light_power * 1.5;
-    windowlight_right.intensity = light_power;
-    windowlight_left1.intensity = light_power / 2;
-    windowlight_left2.intensity = light_power / 2;
+      //地面の配置
+      groundtexture = TextureLoader.load("img/ground.jpg");
+      const groundFloor = new THREE.Mesh(
+        new THREE.BoxGeometry(200, 0.1, 200),
+        new THREE.MeshStandardMaterial({
+          map: groundtexture,
+          roughness: 1.0
+        })
+      );
+      scene.add(groundFloor);
 
-    renderer.render(scene, camera);
+      //家の配置
+      const gltfLoader = new THREE.GLTFLoader();
+      gltfLoader.load('model/house.glb', function (data) {
+        const gltf = data;
+        const obj = gltf.scene;
+        obj.position.y = 10;
+        scene.add(obj);
+      });
 
-  }
-}
+      //treeモデルの複数回配置
+      //tree_z 初期位置
+      //tree_offset_z zの変化量
+      var tree_z = 10;
+      var tree_offset_z = -15;
+      for (let i = 0; i < 4; i++) {
+        gltfLoader.load('model/tree_toonlike.glb', function (data) {
+          const gltf = data;
+          obj = gltf.scene;
+          obj.position.x = 25;
+          obj.position.z = tree_z + (i * tree_offset_z);
+          obj.scale.set(0.5, 0.5, 0.5);
+          scene.add(obj);
+        });
+      }
+      for (let i = 0; i < 4; i++) {
+        gltfLoader.load('model/tree_toonlike.glb', function (data) {
+          const gltf = data;
+          obj = gltf.scene;
+          obj.position.x = -25;
+          obj.position.z = tree_z + (i * tree_offset_z);
+          obj.scale.set(0.5, 0.5, 0.5);
+          scene.add(obj);
+        });
+      }
+
+      gltfLoader.load('model/rock.glb', function (data) {
+        const gltf = data;
+        const obj = gltf.scene;
+        obj.position.x = 10;
+        obj.position.z = 13;
+        obj.scale.set(3, 3, 3);
+        scene.add(obj);
+      });
+
+      // 平行光源
+      var directionalLight = new THREE.DirectionalLight(0xffffff);
+      directionalLight.position.set(0, 1, 1);
+      scene.add(directionalLight);
+
+      //点光源
+      //光源の強さを変化させ、揺らいでるようにしたい
+
+      var light_power = 1.5;
+
+      var windowlight_front = new THREE.PointLight(0xffff81, light_power, 20, 1.0);
+      windowlight_front.position.set(5, 7.5, 11);
+      scene.add(windowlight_front);
+      //var lightHelper = new THREE.PointLightHelper(windowlight_front);
+      //scene.add(lightHelper);
+
+      //
+      var windowlight_right = new THREE.PointLight(0xffff81, light_power, 30, 1);
+      windowlight_right.position.set(-11, 8, 0);
+      scene.add(windowlight_right);
+      //var lightHelper2 = new THREE.PointLightHelper(windowlight_right);
+      //scene.add(lightHelper2);
+
+      //
+      var windowlight_left1 = new THREE.PointLight(0xb56bff, light_power, 30, 1);
+      windowlight_left1.position.set(11.5, 8, 4.5);
+      scene.add(windowlight_left1);
+      //var lightHelper3 = new THREE.PointLightHelper(windowlight_left1);
+      //scene.add(lightHelper3);
+
+      var windowlight_left2 = new THREE.PointLight(0xb56bff, light_power, 30, 1);
+      windowlight_left2.position.set(11.5, 8, -5.5);
+      scene.add(windowlight_left2);
+      //var lightHelper4 = new THREE.PointLightHelper(windowlight_left2);
+      //scene.add(lightHelper4);
+
+      //アニメーション
+      tick();
+
+      function tick() {
+        controls.update();
+        requestAnimationFrame(tick);
+
+        //雨粒のアニメーション
+        geo.vertices.forEach(p => {
+          p.y -= 0.5;   //雨の落下速度
+          if (p.y <= -10) {  //雨の寿命、yが-10以下になったらランダムな位置に移動させる
+            p.y = (Math.random() - 0.5) * size;
+            p.x = (Math.random() - 0.5) * size;
+            p.z = (Math.random() - 0.5) * size;
+          }
+        });
+        geo.verticesNeedUpdate = true;    //変更した配列の適用、毎回trueにしないとだめらしい。
+
+        //ライトの強さ変更
+        var t = Date.now() / 2500;
+        var r = 3.0;   //radian
+        light_power = Math.abs(r * Math.sin(t));    //sinの絶対値だけ欲しい(負は取りたくない)
+        windowlight_front.intensity = light_power * 1.5;
+        windowlight_right.intensity = light_power;
+        windowlight_left1.intensity = light_power / 2;
+        windowlight_left2.intensity = light_power / 2;
+
+        renderer.render(scene, camera);
+
+      }
+    }
   </script>
 </head>
+
 <body>
-  <canvas id="myCanvas"></canvas>
+  <div id="three_render" style="position: relative;">
+      <canvas id="myCanvas"></canvas>
+  </div>
+  <div>
+    aaaa
+  </div>
 </body>
+
 </html>
