@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
+  <script src="OrbitControls.js"></script>
+  <script src="GLTFLoader.js"></script>
+  <title>ForestFog</title>
+  <script>
+    let raindrop = 0.5;   //雨の落ちる速度
+    let sinpuku = 2.0;    //振幅
+    let time = 2500;      //周期
+    window.addEventListener("load", init);
+
+    function init() {
+      const world_color = 0x000000;
+
+      //レンダリング初期化
+      var width = 800,
+        height = 600;
+
+      const renderer = new THREE.WebGLRenderer({
+        canvas: document.querySelector("#myCanvas")
+      });
+      renderer.setClearColor(world_color, 1.0);    //背景色
+      renderer.setSize(width, height);
+      three_render.appendChild(renderer.domElement);   //divタグthree_renderにレンダー画面を子要素に入れる。画面のレイアウトを分けたい。
+
+      //シーンとカメラ初期化と追加
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(45, width / height, 1, 10000);
+      camera.position.set(0, 10, 75);
+      camera.lookAt(scene.position);
+
+      //OrbitControlsの実装
+      const controls = new THREE.OrbitControls(camera, renderer.domElement);    //OrbitControlsはデフォだと全画面(body全部)に適用されてしまうので、レンダー範囲に限定させる
+      controls.maxPolarAngle = 1.5;   //下段のカメラの制限?　少なくともこれで地面より下にはもぐりこまない。
+
+      //ジオメトリとか色々実装
+
+      //座標軸を表示
+      var axes = new THREE.AxisHelper(2500);
+      scene.add(axes);
+      //texture loader
+      const TextureLoader = new THREE.TextureLoader();
+
+       //家の配置
+      const gltfLoader = new THREE.GLTFLoader();
+      gltfLoader.load('model/house.glb', function (data) {
+        const gltf = data;
+        const obj = gltf.scene;
+        obj.position.y = 10;
+        scene.add(obj);
+      });
+
+      /*
+      //パーティクル生成、配置
+      const geo = new THREE.Geometry();
+      const size = 100;
+      const length = 10000;
+      for (let i = 0; i < length; i++) {
+        geo.vertices.push(
+          new THREE.Vector3(
+            size * (Math.random() - 0.5),
+            size * (Math.random() - 0.5),
+            size * (Math.random() - 0.5)
+          )
+        );
+      }
+      raintexture = TextureLoader.load("img/rain.png");
+      const mat = new THREE.PointsMaterial({
+        map: raintexture,
+        size: 1,
+        transparent: true
+      });
+      const mesh = new THREE.Points(geo, mat);
+      scene.add(mesh);
+      */
+
+      const light = new THREE.AmbientLight(0xFFFFFF, 1.0);
+      scene.add(light);
+
+      //アニメーション
+      tick();
+
+      function tick() {
+        controls.update();
+        requestAnimationFrame(tick);
+
+        
+        //雨粒のアニメーション
+        /*
+        geo.vertices.forEach(p => {
+          p.y -= raindrop;   //雨の落下速度
+          if (p.y <= -10) {  //雨の寿命、yが-10以下になったらランダムな位置に移動させる
+            p.y = (Math.random() - 0.5) * size;
+            p.x = (Math.random() - 0.5) * size;
+            p.z = (Math.random() - 0.5) * size;
+          }
+        });
+        
+        geo.verticesNeedUpdate = true;    //変更した配列の適用、毎回trueにしないとだめらしい。
+
+        */
+        renderer.render(scene, camera);
+      }
+    }
+  </script>
+</head>
+
+<body>
+  <div id="three_render" style="position: relative;">
+    <canvas id="myCanvas"></canvas>
+  </div>
+ 
+</body>
+
+</html>

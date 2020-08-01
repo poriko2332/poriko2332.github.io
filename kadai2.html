@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
+  <script src="OrbitControls.js"></script>
+  <script src="GLTFLoader.js"></script>
+  <title>Texture</title>
+</head>
+<script>
+  window.addEventListener("DOMContentLoaded", init);
+
+  function init() {
+    var width = 800,
+      height = 600;
+
+    const renderer = new THREE.WebGLRenderer({
+      canvas: document.querySelector("#myCanvas")
+    });
+    renderer.setSize(width, height);
+
+    const scene = new THREE.Scene();
+
+    const camera = new THREE.PerspectiveCamera(45, width / height, 1, 10000);
+    camera.position.set(0, 5, 10);
+    camera.lookAt(scene.position);
+
+
+    //テクスチャー
+    const TextureLoader = new THREE.TextureLoader();
+    texture = TextureLoader.load("img/cit.png");
+    const mat = new THREE.MeshStandardMaterial({
+      map: texture
+    });
+
+    var stone = TextureLoader.load("img/stone.jpg");
+    var stone_bump = TextureLoader.load("img/stone-bump.jpg");
+    const stone_tex = new THREE.MeshPhongMaterial({
+      map: stone,
+      bumpmap: stone_bump,
+      bumpscale: 1
+    })
+
+    //箱
+    var geometry = new THREE.BoxGeometry(1, 1, 1);
+    var box = new THREE.Mesh(geometry, mat);
+    box.position.set(-2, 0, 0);
+    scene.add(box);
+
+    var geo_kyu = new THREE.SphereGeometry(1, 16, 16);
+    var kyu = new THREE.Mesh(geo_kyu, mat);
+    kyu.position.set(0, 0, 0);
+    scene.add(kyu);
+
+    var geo_cylinder = new THREE.CylinderGeometry(1, 1, 2, 8);
+    var cylinder = new THREE.Mesh(geo_cylinder, mat);
+    cylinder.position.set(2, 0, 0);
+    scene.add(cylinder);
+
+    var geometry = new THREE.BoxGeometry(1, 1, 1);
+    var box = new THREE.Mesh(geometry, stone_tex);
+    box.position.set(-2, 0, 2);
+    scene.add(box);
+
+    var geo_kyu = new THREE.SphereGeometry(1, 16, 16);
+    var kyu = new THREE.Mesh(geo_kyu, stone_tex);
+    kyu.position.set(0, 0, 2);
+    scene.add(kyu);
+
+    var geo_cylinder = new THREE.CylinderGeometry(1, 1, 2, 8);
+    var cylinder = new THREE.Mesh(geo_cylinder, stone_tex);
+    cylinder.position.set(2, 0, 2);
+    scene.add(cylinder);
+
+     // 平行光源
+    var directionalLight = new THREE.DirectionalLight(0xffffff);
+    directionalLight.position.set(0, 1, 1);
+    scene.add(directionalLight);
+    var directionalLight2 = new THREE.DirectionalLight(0xffffff);
+    directionalLight2.position.set(1, 1, -1);
+    scene.add(directionalLight2);
+
+    tick();
+    function tick(){
+      requestAnimationFrame(tick);
+      renderer.render(scene, camera);
+    }
+  }
+</script>
+
+<body>
+  <canvas id="myCanvas"></canvas>
+</body>
+
+</html>
