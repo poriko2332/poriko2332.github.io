@@ -35,21 +35,10 @@
       camera.position.set(0, 10, 75);
       camera.lookAt(scene.position);
 
-      /*
-      //座標軸を表示
-      var axes = new THREE.AxisHelper(2500);
-      scene.add(axes);
-    
-      //グリッドの常時
-      var gridHelper = new THREE.GridHelper(50, 10);
-      scene.add(gridHelper);
-      */
-
       //OrbitControlsの実装
       const controls = new THREE.OrbitControls(camera, renderer.domElement);    //OrbitControlsはデフォだと全画面(body全部)に適用されてしまうので、レンダー範囲に限定させる
       controls.maxPolarAngle = 1.5;   //下段のカメラの制限?　少なくともこれで地面より下にはもぐりこまない。
 
-      //--------------------------
       //ジオメトリとか色々実装
 
       //texture loader
@@ -139,7 +128,6 @@
 
       //点光源
       //光源の強さを変化させ、揺らいでるようにしたい
-
       let light_power = 1.5;
 
       let windowlight_front = new THREE.PointLight(0xffff81, light_power, 20, 1.0);
@@ -176,8 +164,6 @@
         controls.update();
         requestAnimationFrame(tick);
 
-        //console.log(raindrop);
-       
         //雨粒のアニメーション
         geo.vertices.forEach(p => {
           p.y -= raindrop;   //雨の落下速度
@@ -202,6 +188,8 @@
       }
     }
 
+    //inputの更新がある度に発火
+    //各項目の値を更新する
     window.addEventListener('input', showValue);
     function showValue(){
       document.getElementById("showRangeArea1").innerHTML = document.getElementById("range1").value;
@@ -213,7 +201,6 @@
     }
   </script>
 </head>
-
 <body>
   <div id="three_render" style="position: relative;">
       <canvas id="myCanvas"></canvas>
@@ -234,5 +221,4 @@
     </p>
   </div>
 </body>
-
 </html>
